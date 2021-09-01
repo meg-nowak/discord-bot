@@ -1,26 +1,28 @@
-const Discord = require("discord.js");  // import discord
+const { Client, Collection, Intents } = require("discord.js");  // import discord
 const { token } = require('./config.json'); // import token from config
+const fs = require('fs');
 
-const client = new Discord.Client({ intents: [Discord.Intents.FLAGS.GUILDS, Discord.Intents.FLAGS.GUILD_MEMBERS] })
+const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS] })
 
-// Send message to bot-commands channel when the discord bot is up
-client.on("ready", () => {
-  console.log(`Logged in as ${client.user.tag}!`)
-  const channel = client.channels.cache.get.find(channel => channel.name === "bot-commands");
-  channel.send("haiiiiii!");
-})
+// Import all the commands.
+client.commands = new Collection();
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+for (const file of commandFiles) {
+	const command = require(`./commands/${file}`);
+	// Set a new item in the Collection
+	// With the key as the command name and the value as the exported module
+	client.commands.set(command.data.name, command);
+}
 
-// When a user is added to the channel, greet them and ask them to read the rules in the linked channel.
-client.on('guildMemberAdd', async member => {
-	const channel = client.channels.cache.get.find(channel => channel.name === "welcome");
-	const rule_channel = client.channels.cache.get.find(channel => channel.name === "rules");
-	await channel.send(`welcome 2 moggyz server, <@${member.user.id}> plz read the rulez in <#${rule_channel.id}>`);
-});
-
-// When a user leaves the server, say goodbye to them.
-client.on('guildMemberRemove', async member => {
-	const channel = client.channels.cache.get.find(channel => channel.name === "welcome");
-	await channel.send(`o no! lookz like ${member.user.username} left, goodbye!`);
-})
+// Read all event files
+const eventFiles = fs.readdirSync('./events').filter(file => file.endsWith('.js'));
+for (const file of eventFiles) {
+	const event = require(`./events/${file}`);
+	if (event.once) {
+		client.once(event.name, (...args) => event.execute(...args));
+	} else {
+		client.on(event.name, (...args) => event.execute(...args));
+	}
+}
 
 client.login(token)
