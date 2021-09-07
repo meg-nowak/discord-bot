@@ -1,5 +1,5 @@
-const { Client, Collection, Intents } = require("discord.js");  // import discord
-const { token } = require('./config.json'); // import token from config
+const { Client, Collection, Intents } = require("discord.js");
+const { token } = require('./config.json');
 const fs = require('fs');
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS] })
@@ -7,10 +7,10 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
 // Import all the commands.
 client.commands = new Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+console.log(commandFiles);
 for (const file of commandFiles) {
 	const command = require(`./commands/${file}`);
-	// Set a new item in the Collection
-	// With the key as the command name and the value as the exported module
+	console.log(command);
 	client.commands.set(command.data.name, command);
 }
 
@@ -25,4 +25,4 @@ for (const file of eventFiles) {
 	}
 }
 
-client.login(token)
+client.login(token);
